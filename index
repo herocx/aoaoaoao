@@ -1,0 +1,121 @@
+# Импорт библиотек
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.metrics import accuracy_score, classification_report
+
+# Загрузка данных
+df = pd.read_csv('data.csv')
+
+# Удаление пропущенных значений
+df = df.dropna()
+
+# Преобразование категориальных переменных
+categorical_columns = [
+    'CODE_GENDER_F', 'CODE_GENDER_M',
+    'NAME_EDUCATION_TYPE_Academic_degree',
+    'NAME_EDUCATION_TYPE_Higher_education',
+    'NAME_EDUCATION_TYPE_Incomplete_higher',
+    'NAME_EDUCATION_TYPE_Lower_secondary',
+    'NAME_EDUCATION_TYPE_Secondary_secondary_special',
+    'NAME_CONTRACT_STATUS_Approved',
+    'NAME_CONTRACT_STATUS_Canceled',
+    'NAME_CONTRACT_STATUS_Refused',
+    'NAME_CONTRACT_STATUS_Unused offer'
+]
+
+label_encoders = {}
+for column in categorical_columns:
+    le = LabelEncoder()
+    df[column] = le.fit_transform(df[column])
+    label_encoders[column] = le
+
+# Признаки для модели
+X = df.drop(columns=['SK_ID_CURR', 'TARGET'])
+y = df['TARGET']
+
+# Масштабирование данных
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+###knn: 
+from sklearn.neighbors import KNeighborsClassifier
+
+# Обучение модели KNN
+knn = KNeighborsClassifier(n_neighbors=5)
+knn.fit(X_scaled, y)
+
+# Предсказание
+y_pred_knn = knn.predict(X_scaled)
+
+# Оценка модели
+accuracy_knn = accuracy_score(y, y_pred_knn)
+print(f"Точность модели KNN (Accuracy): {accuracy_knn:.4f}")
+print("\nОтчет о классификации для KNN:")
+print(classification_report(y, y_pred_knn))
+
+# Добавление результатов в DataFrame
+df['credit_decision_knn'] = (knn.predict_proba(X_scaled)[:, 1] < 0.5).astype(int)
+df['decision_confidence_knn'] = knn.predict_proba(X_scaled)[:, 1]
+
+###nbc
+from sklearn.naive_bayes import GaussianNB
+
+# Обучение модели Naive Bayes
+nb = GaussianNB()
+nb.fit(X_scaled, y)
+
+# Предсказание
+y_pred_nb = nb.predict(X_scaled)
+
+# Оценка модели
+accuracy_nb = accuracy_score(y, y_pred_nb)
+print(f"Точность модели Naive Bayes (Accuracy): {accuracy_nb:.4f}")
+print("\nОтчет о классификации для Naive Bayes:")
+print(classification_report(y, y_pred_nb))
+
+# Добавление результатов в DataFrame
+df['credit_decision_nb'] = (nb.predict_proba(X_scaled)[:, 1] < 0.5).astype(int)
+df['decision_confidence_nb'] = nb.predict_proba(X_scaled)[:, 1]
+
+###tress
+from sklearn.ensemble import RandomForestClassifier
+
+# Обучение модели Random Forest
+rf = RandomForestClassifier(n_estimators=100, class_weight='balanced', max_depth=5, random_state=42)
+rf.fit(X_scaled, y)
+
+# Предсказание
+y_pred_rf = rf.predict(X_scaled)
+
+# Оценка модели
+accuracy_rf = accuracy_score(y, y_pred_rf)
+print(f"Точность модели Random Forest (Accuracy): {accuracy_rf:.4f}")
+print("\nОтчет о классификации для Random Forest:")
+print(classification_report(y, y_pred_rf))
+
+# Добавление результатов в DataFrame
+df['credit_decision_rf'] = (rf.predict_proba(X_scaled)[:, 1] < 0.5).astype(int)
+df['decision_confidence_rf'] = rf.predict_proba(X_scaled)[:, 1]
+
+### rf
+from sklearn.tree import DecisionTreeClassifier
+
+# Обучение модели Decision Tree
+dt = DecisionTreeClassifier(class_weight='balanced', max_depth=5, random_state=42)
+dt.fit(X_scaled, y)
+
+# Предсказание
+y_pred_dt = dt.predict(X_scaled)
+
+# Оценка модели
+accuracy_dt = accuracy_score(y, y_pred_dt)
+print(f"Точность модели Decision Tree (Accuracy): {accuracy_dt:.4f}")
+print("\nОтчет о классификации для Decision Tree:")
+print(classification_report(y, y_pred_dt))
+
+# Добавление результатов в DataFrame
+df['credit_decision_dt'] = (dt.predict_proba(X_scaled)[:, 1] < 0.5).astype(int)
+df['decision_confidence_dt'] = dt.predict_proba(X_scaled)[:, 1]
+
+df.to_csv('data_with_decisions_rf_dt.csv', index=False)
