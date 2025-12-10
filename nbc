@@ -1,0 +1,59 @@
+import pandas as pd
+from sklearn.preprocessing import MaxAbsScaler, LabelEncoder
+from sklearn.naive_bayes import GaussianNB
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
+
+df2 = pd.read_csv('data.csv')
+
+df2 = df2.dropna()
+
+categorical_columns = [
+    'CODE_GENDER_F', 'CODE_GENDER_M',
+    'NAME_EDUCATION_TYPE_Academic_degree',
+    'NAME_EDUCATION_TYPE_Higher_education',
+    'NAME_EDUCATION_TYPE_Incomplete_higher',
+    'NAME_EDUCATION_TYPE_Lower_secondary',
+    'NAME_EDUCATION_TYPE_Secondary_secondary_special',
+    'NAME_CONTRACT_STATUS_Approved',
+    'NAME_CONTRACT_STATUS_Canceled',
+    'NAME_CONTRACT_STATUS_Refused',
+    'NAME_CONTRACT_STATUS_Unused offer'
+]
+label_encoders = {}
+for col in categorical_columns:
+    le = LabelEncoder()
+    df2[col] = le.fit_transform(df2[col])
+    label_encoders[col] = le
+
+X = df2.drop(columns=['SK_ID_CURR', 'TARGET'])
+y = df2['TARGET']
+
+scaler = MaxAbsScaler()
+X_scaled = scaler.fit_transform(X)
+
+nb = GaussianNB()
+nb.fit(X_scaled, y)
+
+proba = nb.predict_proba(X_scaled)[:, 1]
+predicted_labels = (proba >= 0.5).astype(int)
+
+df2['credit_decision'] = predicted_labels
+df2['decision_confidence'] = proba
+
+print(df[['SK_ID_CURR', 'credit_decision', 'decision_confidence']].head())
+
+X_tsne = TSNE(n_components=2, random_state=42).fit_transform(X_scaled)
+
+plt.figure(figsize=(10, 8))
+plt.scatter(X_tsne[predicted_labels==0, 0], X_tsne[predicted_labels==0, 1], 
+            color='blue', alpha=0.6, label='Не выдавать кредит')
+plt.scatter(X_tsne[predicted_labels==1, 0], X_tsne[predicted_labels==1, 1], 
+            color='orange', alpha=0.6, label='Выдать кредит')
+
+plt.title('Кластеры по предсказаниям Наивного Байеса (с помощью t-SNE)')
+plt.xlabel('t-SNE компонент 1')
+plt.ylabel('t-SNE компонент 2')
+plt.legend()
+plt.grid(True)
+plt.show()
