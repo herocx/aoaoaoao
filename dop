@@ -1,0 +1,13 @@
+import matplotlib.pyplot as plt
+# Гистограмма для решений "выдать кредит"
+plt.hist(df[df['credit_decision'] == 1]['decision_confidence'], bins=30, alpha=0.6, color='green', label='Выдать кредит', edgecolor='black')
+
+# Гистограмма для решений "не выдавать кредит"
+plt.hist(df[df['credit_decision'] == 0]['decision_confidence'], bins=30, alpha=0.6, color='red', label='Не выдавать кредит', edgecolor='black')
+
+from sklearn.metrics import accuracy_score
+
+y_pred = logreg.predict(X_scaled)
+
+accuracy = accuracy_score(df['TARGET'], y_pred)
+print(f"Точность модели : {accuracy}")
