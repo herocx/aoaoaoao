@@ -1,0 +1,54 @@
+import pandas as pd
+from sklearn.preprocessing import MaxAbsScaler, LabelEncoder
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
+
+df1 = pd.read_csv('data.csv')
+df1 = df1.dropna()
+
+categorical_columns = [
+    'CODE_GENDER_F', 'CODE_GENDER_M',
+    'NAME_EDUCATION_TYPE_Academic_degree',
+    'NAME_EDUCATION_TYPE_Higher_education',
+    'NAME_EDUCATION_TYPE_Incomplete_higher',
+    'NAME_EDUCATION_TYPE_Lower_secondary',
+    'NAME_EDUCATION_TYPE_Secondary_secondary_special',
+    'NAME_CONTRACT_STATUS_Approved',
+    'NAME_CONTRACT_STATUS_Canceled',
+    'NAME_CONTRACT_STATUS_Refused',
+    'NAME_CONTRACT_STATUS_Unused offer'
+]
+label_encoders = {}
+for col in categorical_columns:
+    le = LabelEncoder()
+    df1[col] = le.fit_transform(df1[col])
+    label_encoders[col] = le
+
+X = df1.drop(columns=['SK_ID_CURR', 'TARGET'])
+y = df1['TARGET']
+
+scaler = MaxAbsScaler()
+X_scaled = scaler.fit_transform(X)
+
+knn = KNeighborsClassifier(n_neighbors=5, weights='distance')
+knn.fit(X_scaled, y)
+
+proba = knn.predict_proba(X_scaled)[:, 1]
+predicted_labels = (proba >= 0.5).astype(int)
+
+tsne = TSNE(n_components=2, random_state=42)
+X_tsne = tsne.fit_transform(X_scaled)
+
+plt.figure(figsize=(10, 8))
+plt.scatter(X_tsne[predicted_labels==0, 0], X_tsne[predicted_labels==0, 1], 
+            color='red', alpha=0.6, label='Не выдавать кредит')
+plt.scatter(X_tsne[predicted_labels==1, 0], X_tsne[predicted_labels==1, 1], 
+            color='green', alpha=0.6, label='Выдать кредит')
+
+plt.title('Кластеры по предсказанным решениям KNN (с помощью t-SNE)')
+plt.xlabel('t-SNE компонент 1')
+plt.ylabel('t-SNE компонент 2')
+plt.legend()
+plt.grid(True)
+plt.show()
