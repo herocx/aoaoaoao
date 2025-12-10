@@ -1,3 +1,17 @@
+import psycopg2
+import pandas as pd
+
+SQL = """ SELECT * FROM data """
+connection = psycopg2.connect(database="test", user="postgres", password="admin", port=5432, host="localhost")
+
+data_1 = pd.read_sql_query(SQL, connection)
+print(data_1.info())
+
+
+
+
+
+
 import psycopg2,csv
 
 conntion = psycopg2.connect(database="test", user="univer", password="univer", port=5432, host="localhost")
