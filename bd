@@ -1,0 +1,87 @@
+import psycopg2,csv
+
+conntion = psycopg2.connect(database="test", user="univer", password="univer", port=5432, host="localhost")
+cur = conntion.cursor()
+
+with open("data1.csv", "r", encoding="utf-8",) as file:
+    reader = csv.reader(file,delimiter=",")
+    data = list(reader)
+    data.pop(0)
+
+sql_create_table_plan = """
+CREATE TABLE public."data_hehe1" (
+    "SK_ID_CURR" integer, 
+    "CNT_CHILDREN"integer,
+    "DAYS_BIRTH" integer,
+    "CODE_GENDER_F" float,
+    "CODE_GENDER_M" float,
+    "NAME_EDUCATION_TYPE_Academic_degree" float,
+    "NAME_EDUCATION_TYPE_Higher_education" float,
+    "NAME_EDUCATION_TYPE_Incomplete_higher" float,
+    "NAME_EDUCATION_TYPE_Lower_secondary" float,
+    "NAME_EDUCATION_TYPE_Secondary_secondary special" float,
+    "AMT_INCOME_TOTAL" float,
+    "AMT_CREDIT_x" float,
+    "AMT_ANNUITY_x" float,
+    "AMT_GOODS_PRICE_x" float,
+    "EXT_SOURCE_2" float,
+    "EXT_SOURCE_3" float,
+    "AMT_REQ_CREDIT_BUREAU_HOUR" float,
+    "AMT_REQ_CREDIT_BUREAU_DAY" float,
+    "TARGET" integer
+    );
+"""
+
+cur.execute(sql_create_table_plan)
+conntion.commit()
+
+for i in range(len(data)):
+    sql_insert_plan = f"""
+    INSERT INTO public."data_hehe1" (
+        "SK_ID_CURR", 
+        "CNT_CHILDREN",
+        "DAYS_BIRTH",
+        "CODE_GENDER_F",
+        "CODE_GENDER_M",
+        "NAME_EDUCATION_TYPE_Academic_degree",
+        "NAME_EDUCATION_TYPE_Higher_education",
+        "NAME_EDUCATION_TYPE_Incomplete_higher",
+        "NAME_EDUCATION_TYPE_Lower_secondary",
+        "NAME_EDUCATION_TYPE_Secondary_secondary special",
+        "AMT_INCOME_TOTAL",
+        "AMT_CREDIT_x",
+        "AMT_ANNUITY_x",
+        "AMT_GOODS_PRICE_x",
+        "EXT_SOURCE_2",
+        "EXT_SOURCE_3",
+        "AMT_REQ_CREDIT_BUREAU_DAY",
+        "TARGET"
+        )  
+    VALUES (
+        {data[i][0]},
+        {data[i][1]},
+        {data[i][2]},
+        {data[i][3]},
+        {data[i][4]},
+        {data[i][5]},
+        {data[i][6]},
+        {data[i][7]},
+        {data[i][8]},
+        {data[i][9]},
+        {data[i][10]},
+        {data[i][11]},
+        {data[i][12]},
+        {data[i][13]},
+        {data[i][14]},
+        {data[i][15]},
+        {data[i][16]},
+        {data[i][17]},
+        {data[i][18]}
+        );
+
+    """
+
+    cur.execute(sql_insert_plan)
+    conntion.commit()
+    
+conntion.close()
