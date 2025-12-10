@@ -1,0 +1,55 @@
+import pandas as pd
+from sklearn.preprocessing import MaxAbsScaler, LabelEncoder
+from sklearn.ensemble import RandomForestClassifier
+import joblib
+import matplotlib.pyplot as plt
+
+df = pd.read_csv('data.csv')
+
+df = df.dropna()
+
+categorical_columns = [
+    'CODE_GENDER_F', 'CODE_GENDER_M',
+    'NAME_EDUCATION_TYPE_Academic_degree',
+    'NAME_EDUCATION_TYPE_Higher_education',
+    'NAME_EDUCATION_TYPE_Incomplete_higher',
+    'NAME_EDUCATION_TYPE_Lower_secondary',
+    'NAME_EDUCATION_TYPE_Secondary_secondary_special',
+    'NAME_CONTRACT_STATUS_Approved',
+    'NAME_CONTRACT_STATUS_Canceled',
+    'NAME_CONTRACT_STATUS_Refused',
+    'NAME_CONTRACT_STATUS_Unused offer'
+]
+
+label_encoders = {}
+for column in categorical_columns:
+    le = LabelEncoder()
+    df[column] = le.fit_transform(df[column])
+    label_encoders[column] = le
+
+X = df.drop(columns=['SK_ID_CURR', 'TARGET'])
+y = df['TARGET']
+
+scaler = MaxAbsScaler()
+X_scaled = scaler.fit_transform(X)
+
+rf = RandomForestClassifier(n_estimators=100, class_weight='balanced', random_state=42)
+rf.fit(X_scaled, y)
+
+y_pred_proba = rf.predict_proba(X_scaled)[:, 1]
+
+df['credit_decision'] = (y_pred_proba < 0.5).astype(int)
+df['decision_confidence'] = y_pred_proba
+
+print(df[['SK_ID_CURR', 'credit_decision', 'decision_confidence']].head())
+
+plt.figure(figsize=(12, 6))
+plt.hist(df[df['credit_decision'] == 1]['decision_confidence'], bins=30, alpha=0.6, color='green', label='Выдать кредит', edgecolor='black')
+plt.hist(df[df['credit_decision'] == 0]['decision_confidence'], bins=30, alpha=0.6, color='red', label='Не выдавать кредит', edgecolor='black')
+
+plt.title('Распределение уверенности модели в решении о выдаче кредита')
+plt.xlabel('Уверенность модели (вероятность проблем с возвратом)')
+plt.ylabel('Количество клиентов')
+plt.legend()
+plt.grid(True, linestyle='--', alpha=0.7)
+plt.show()
