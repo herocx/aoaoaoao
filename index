@@ -1,3 +1,16 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+t = df['credit_decision']
+
+plt.hist(t, bins=[0, 0.5, 1.5], edgecolor='black', rwidth=0.8, color='skyblue') 
+plt.title('Гистограмма распределения нулей и единиц') 
+plt.xlabel('Значение (0 или 1)') 
+plt.ylabel('Частота (Количество)') 
+plt.xticks([0, 1], ['Значение 0', 'Значение 1']) 
+plt.grid(axis='y', alpha=0.75) 
+plt.show()
+
 # Импорт библиотек
 import pandas as pd
 from sklearn.model_selection import train_test_split
