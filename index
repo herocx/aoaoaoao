@@ -118,4 +118,21 @@ print(classification_report(y, y_pred_dt))
 df['credit_decision_dt'] = (dt.predict_proba(X_scaled)[:, 1] < 0.5).astype(int)
 df['decision_confidence_dt'] = dt.predict_proba(X_scaled)[:, 1]
 
+# Применение t-SNE
+tsne = TSNE(n_components=2, random_state=42)
+X_tsne = tsne.fit_transform(X_scaled)
+
+# Визуализация
+plt.figure(figsize=(10, 8))
+plt.scatter(X_tsne[df['credit_decision_rf'] == 0, 0], X_tsne[df['credit_decision_rf'] == 0, 1],
+            color='red', alpha=0.6, label='Не выдавать кредит')
+plt.scatter(X_tsne[df['credit_decision_rf'] == 1, 0], X_tsne[df['credit_decision_rf'] == 1, 1],
+            color='green', alpha=0.6, label='Выдать кредит')
+plt.title('Кластеры по предсказанным решениям Random Forest (с помощью t-SNE)')
+plt.xlabel('t-SNE компонент 1')
+plt.ylabel('t-SNE компонент 2')
+plt.legend()
+plt.grid(True)
+plt.show()
+
 df.to_csv('data_with_decisions_rf_dt.csv', index=False)
